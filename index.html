@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayHero Kenya - Dynamic Payment</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #00a884 0%, #0d5e56 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .payment-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 550px;
+            width: 100%;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #00a884;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: #00a884;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #495057;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e1e1e1;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background: #fafafa;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #00a884;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(0,168,132,0.1);
+        }
+        
+        .amount-wrapper {
+            position: relative;
+        }
+        
+        .currency-symbol {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            font-weight: bold;
+            color: #00a884;
+        }
+        
+        .amount-input {
+            padding-left: 45px !important;
+            font-size: 24px !important;
+            font-weight: bold;
+        }
+        
+        .payment-summary {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 25px 0;
+            border-left: 5px solid #00a884;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+        
+        .summary-row.total {
+            border-top: 2px dashed #adb5bd;
+            margin-top: 12px;
+            padding-top: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #00a884;
+        }
+        
+        .payment-section {
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        #payHero {
+            margin: 20px 0;
+        }
+        
+        .payment-badge {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 25px;
+            font-size: 14px;
+            color: #6c757d;
+            border: 1px solid #dee2e6;
+        }
+        
+        .payment-badge i {
+            color: #00a884;
+            font-weight: bold;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            font-weight: 500;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 25px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #00a884;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .instructions {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            font-size: 14px;
+            color: #0056b3;
+            border-left: 5px solid #0056b3;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 12px;
+        }
+        
+        .quick-amounts {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .quick-amount-btn {
+            background: #f1f3f5;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #495057;
+            transition: all 0.3s;
+        }
+        
+        .quick-amount-btn:hover {
+            background: #00a884;
+            color: white;
+            border-color: #00a884;
+        }
+        
+        .validation-message {
+            color: #dc3545;
+            font-size: 13px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .phone-hint {
+            background: #e8f5e9;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #2e7d32;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-container">
+        <div class="header">
+            <div class="logo">
+                ₦
+            </div>
+            <h1>💰 PayHero Kenya</h1>
+            <p>Secure M-PESA & SasaPay Payments</p>
+        </div>
+        
+        <!-- Instructions Alert -->
+        <div class="instructions">
+            <strong>⚠️ CONFIGURATION REQUIRED:</strong> Replace placeholder credentials below with your actual PayHero API credentials from 
+            <a href="https://app.payhero.co.ke" target="_blank" style="color: #0056b3; font-weight: bold;">app.payhero.co.ke</a>
+        </div>
+        
+        <!-- Customer Information Form -->
+        <form id="paymentForm" onsubmit="event.preventDefault();">
+            <!-- Amount Input - Dynamic -->
+            <div class="form-group">
+                <label>💰 Amount to Pay (KES)</label>
+                <div class="amount-wrapper">
+                    <span class="currency-symbol">KES</span>
+                    <input type="number" class="form-control amount-input" id="amount" 
+                           placeholder="0.00" min="10" step="1" value="1000" required>
+                </div>
+                <div id="amountError" class="validation-message">
+                    Please enter a valid amount (minimum KES 10)
+                </div>
+                
+                <!-- Quick amount selection -->
+                <div class="quick-amounts">
+                    <button type="button" class="quick-amount-btn" onclick="setAmount(100)">KES 100</button>
+                    <button type="button" class="quick-amount-btn" onclick="setAmount(500)">KES 500</button>
+                    <button type="button" class="quick-amount-btn" onclick="setAmount(1000)">KES 1,000</button>
+                    <button type="button" class="quick-amount-btn" onclick="setAmount(5000)">KES 5,000</button>
+                </div>
+            </div>
+            
+            <!-- Payment Summary - Updates in real-time -->
+            <div class="payment-summary">
+                <div class="summary-row">
+                    <span>Payment Amount:</span>
+                    <span id="displayAmount">KES 1,000.00</span>
+                </div>
+                <div class="summary-row">
+                    <span>Transaction Fee:</span>
+                    <span id="displayFee">KES 0.00</span>
+                </div>
+                <div class="summary-row">
+                    <span>Payment Method:</span>
+                    <span>M-PESA STK Push</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total to Pay:</span>
+                    <span id="displayTotal">KES 1,000.00</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>👤 Full Name</label>
+                <input type="text" class="form-control" id="fullName" 
+                       placeholder="John Doe" value="John Doe" required>
+            </div>
+            
+            <div class="form-group">
+                <label>📱 M-PESA Phone Number</label>
+                <input type="tel" class="form-control" id="phoneNumber" 
+                       placeholder="254700000000" value="254708344101" required>
+                <div class="phone-hint">
+                    ✅ Format: 254XXXXXXXXX (e.g., 254708344101)
+                </div>
+                <div id="phoneError" class="validation-message">
+                    Please enter a valid Kenyan phone number
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>📧 Email Address (Optional)</label>
+                <input type="email" class="form-control" id="email" 
+                       placeholder="customer@example.com" value="customer@example.com">
+            </div>
+            
+            <div class="form-group">
+                <label>📝 Payment Description</label>
+                <input type="text" class="form-control" id="description" 
+                       placeholder="Payment for..." value="Online Payment">
+            </div>
+            
+            <!-- Payment Button Container -->
+            <div class="payment-section">
+                <div id="payHero"></div>
+                
+                <!-- Loading Indicator -->
+                <div id="loadingIndicator" class="loading">
+                    <div class="spinner"></div>
+                    <h3 style="color: #00a884; margin-bottom: 10px;">Processing Payment...</h3>
+                    <p style="font-size: 16px; margin-bottom: 5px;">Please check your phone for M-PESA STK Push</p>
+                    <p style="font-size: 14px; color: #6c757d;">Enter your M-PESA PIN to complete payment</p>
+                </div>
+                
+                <!-- Alert Messages -->
+                <div id="successAlert" class="alert alert-success">
+                    ✅ Payment successful! Thank you for your purchase.
+                </div>
+                
+                <div id="errorAlert" class="alert alert-error">
+                    ❌ Payment failed. Please try again.
+                </div>
+                
+                <div id="configAlert" class="alert alert-warning">
+                    ⚠️ Please configure your PayHero credentials first
+                </div>
+            </div>
+        </form>
+        
+        <div class="payment-badge">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 10px;">
+                <span>🔒 256-bit SSL</span>
+                <span>✅ PCI Compliant</span>
+                <span>📱 M-PESA Integrated</span>
+            </div>
+            <i>Powered by PayHero Kenya</i> - Secure payments via M-PESA STK Push
+        </div>
+        
+        <div class="footer">
+            &copy; 2024 Your Company. All rights reserved.<br>
+            <small>For support: support@yourcompany.com | Version 2.0.0</small>
+        </div>
+    </div>
+
+    <!-- 🔴 STEP 1: Include PayHero SDK -->
+    <script src="https://applet.payherokenya.com/cdn/button_sdk.js"></script>
+    
+    <script>
+        // 🔴 STEP 2: Replace these with YOUR ACTUAL PayHero credentials
+        const PAYHERO_CONFIG = {
+            paymentUrl: "https://app.payhero.africa/lipwa/448",      // REPLACE: Your Lipwa Link from dashboard
+            channelID: 448,                          // REPLACE: Your Channel ID
+            callbackUrl: "https://yoursite.com/callback", // REPLACE: Your callback URL
+            successUrl: window.location.href.split('?')[0] + "?status=success",
+            failedUrl: window.location.href.split('?')[0] + "?status=failed"
+        };
+
+        // Format number as currency
+        function formatCurrency(amount) {
+            return 'KES ' + parseFloat(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        // Set amount from quick buttons
+        function setAmount(amount) {
+            document.getElementById('amount').value = amount;
+            updatePaymentSummary();
+            
+            // Trigger amount change event
+            const event = new Event('change', { bubbles: true });
+            document.getElementById('amount').dispatchEvent(event);
+            
+            // Reinitialize payment button with new amount
+            setTimeout(initializePaymentButton, 100);
+        }
+
+        // Update payment summary
+        function updatePaymentSummary() {
+            const amount = parseFloat(document.getElementById('amount').value) || 0;
+            const fee = 0; // You can calculate fee here if applicable
+            const total = amount + fee;
+            
+            document.getElementById('displayAmount').textContent = formatCurrency(amount);
+            document.getElementById('displayFee').textContent = formatCurrency(fee);
+            document.getElementById('displayTotal').textContent = formatCurrency(total);
+        }
+
+        // Validate phone number
+        function validatePhoneNumber(phone) {
+            const phoneRegex = /^254[0-9]{9}$/;
+            return phoneRegex.test(phone);
+        }
+
+        // Validate amount
+        function validateAmount(amount) {
+            return amount && !isNaN(amount) && amount >= 10;
+        }
+
+        // Format phone number
+        function formatPhoneNumber(input) {
+            let phone = input.value.replace(/\D/g, '');
+            if (phone.startsWith('0')) {
+                phone = '254' + phone.substring(1);
+            } else if (phone.startsWith('7')) {
+                phone = '254' + phone;
+            } else if (phone.startsWith('1')) {
+                phone = '254' + phone;
+            }
+            input.value = phone;
+        }
+
+        // Generate unique order reference
+        function generateOrderReference() {
+            return 'PAY-' + Date.now() + '-' + Math.random().toString(36).substring(7).toUpperCase();
+        }
+
+        // Check payment status from URL
+        function checkPaymentStatus() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const status = urlParams.get('status');
+            
+            if (status === 'success') {
+                const alert = document.getElementById('successAlert');
+                alert.style.display = 'block';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 7000);
+            } else if (status === 'failed') {
+                const alert = document.getElementById('errorAlert');
+                alert.style.display = 'block';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 7000);
+            }
+        }
+
+        // 🔴 STEP 3: Initialize PayHero Payment Button
+        function initializePaymentButton() {
+            try {
+                // Get values
+                const amount = parseFloat(document.getElementById('amount').value);
+                const customerName = document.getElementById('fullName').value || 'Customer';
+                const customerPhone = document.getElementById('phoneNumber').value;
+                const customerEmail = document.getElementById('email').value;
+                const description = document.getElementById('description').value;
+                
+                // Validate amount
+                if (!validateAmount(amount)) {
+                    document.getElementById('amountError').style.display = 'block';
+                    return false;
+                } else {
+                    document.getElementById('amountError').style.display = 'none';
+                }
+                
+                // Validate phone
+                if (!validatePhoneNumber(customerPhone)) {
+                    document.getElementById('phoneError').style.display = 'block';
+                    return false;
+                } else {
+                    document.getElementById('phoneError').style.display = 'none';
+                }
+                
+                // Check if credentials are configured
+                if (PAYHERO_CONFIG.paymentUrl === "https://app.payhero.africa/lipwa/448") {
+                    document.getElementById('configAlert').style.display = 'block';
+                    return false;
+                } else {
+                    document.getElementById('configAlert').style.display = 'none';
+                }
+
+                // Show loading
+                document.getElementById('loadingIndicator').style.display = 'block';
+                
+                // Clear previous button
+                document.getElementById('payHero').innerHTML = '';
+                
+                // Generate reference
+                const orderReference = generateOrderReference();
+                
+                // Initialize PayHero
+                PayHero.init({
+                    // Required Parameters
+                    paymentUrl: PAYHERO_CONFIG.paymentUrl,
+                    containerId: "payHero",
+                    channelID: PAYHERO_CONFIG.channelID,
+                    amount: amount,
+                    phone: customerPhone,
+                    reference: orderReference,
+                    name: customerName,
+                    
+                    // Optional Parameters
+                    email: customerEmail,
+                    description: description,
+                    buttonName: `💳 Pay ${formatCurrency(amount)} with M-PESA`,
+                    buttonColor: "#00a884",
+                    buttonWidth: "100%",
+                    buttonHeight: "55px",
+                    buttonStyle: "border-radius: 10px; font-size: 18px; font-weight: bold;",
+                    
+                    // URLs
+                    successUrl: PAYHERO_CONFIG.successUrl,
+                    failedUrl: PAYHERO_CONFIG.failedUrl,
+                    
+                    // Callbacks
+                    onSuccess: function(response) {
+                        document.getElementById('loadingIndicator').style.display = 'none';
+                        const alert = document.getElementById('successAlert');
+                        alert.innerHTML = `✅ Payment of ${formatCurrency(amount)} successful!<br>
+                                         Transaction ID: ${response.transaction_id || orderReference}<br>
+                                         Reference: ${orderReference}`;
+                        alert.style.display = 'block';
+                        console.log('Payment Success:', response);
+                    },
+                    
+                    onFailed: function(error) {
+                        document.getElementById('loadingIndicator').style.display = 'none';
+                        const alert = document.getElementById('errorAlert');
+                        alert.innerHTML = `❌ Payment failed: ${error.message || 'Please try again'}<br>
+                                         Amount: ${formatCurrency(amount)}`;
+                        alert.style.display = 'block';
+                        console.error('Payment Failed:', error);
+                    },
+                    
+                    onPending: function(response) {
+                        console.log('Payment Pending:', response);
+                    }
+                });
+                
+                return true;
+            } catch (error) {
+                console.error('PayHero Error:', error);
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('errorAlert').style.display = 'block';
+                document.getElementById('errorAlert').innerHTML = '❌ Error: ' + error.message;
+                return false;
+            }
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            checkPaymentStatus();
+            updatePaymentSummary();
+            
+            if (PAYHERO_CONFIG.paymentUrl === "https://app.payhero.africa/lipwa/448") {
+                document.getElementById('configAlert').style.display = 'block';
+            } else {
+                setTimeout(initializePaymentButton, 500);
+            }
+        });
+
+        // Real-time amount validation and summary update
+        document.getElementById('amount').addEventListener('input', function() {
+            const amount = parseFloat(this.value) || 0;
+            if (amount < 10 && amount > 0) {
+                document.getElementById('amountError').style.display = 'block';
+            } else {
+                document.getElementById('amountError').style.display = 'none';
+            }
+            updatePaymentSummary();
+        });
+
+        document.getElementById('amount').addEventListener('change', function() {
+            initializePaymentButton();
+        });
+
+        // Phone validation and formatting
+        document.getElementById('phoneNumber').addEventListener('blur', function() {
+            formatPhoneNumber(this);
+            if (!validatePhoneNumber(this.value)) {
+                document.getElementById('phoneError').style.display = 'block';
+            } else {
+                document.getElementById('phoneError').style.display = 'none';
+            }
+            initializePaymentButton();
+        });
+
+        // Other field changes
+        document.getElementById('fullName').addEventListener('change', initializePaymentButton);
+        document.getElementById('email').addEventListener('change', initializePaymentButton);
+        document.getElementById('description').addEventListener('change', initializePaymentButton);
+
+        // Manual refresh function
+        function refreshPaymentButton() {
+            initializePaymentButton();
+        }
+    </script>
+
+    <!-- 🔴 DEPLOYMENT CHECKLIST -->
+    <!-- 
+        ✅ DYNAMIC AMOUNT IMPLEMENTED
+        ✅ REQUIRED CHANGES BEFORE GOING LIVE:
+        
+        1. 🔴 Get your credentials from https://app.payhero.co.ke
+           - Lipwa Link (find in API Settings)
+           - Channel ID (find in Channel Settings)
+        
+        2. 🔴 Update line ~180:
+           paymentUrl: "YOUR_LIPWA_LINK_HERE" → "https://payhero.co.ke/api/lipwa/your-actual-link"
+           channelID: 100 → YOUR_ACTUAL_CHANNEL_ID
+        
+        3. 🔴 Update callback URL line ~182:
+           callbackUrl: "https://yoursite.com/callback" → "https://yourdomain.com/payhero-callback.php"
+        
+        4. 🔴 Test with amount KES 10 first
+        5. 🔴 Verify phone number format (254XXXXXXXXX)
+        
+        ⚠️ SUPPORT: 
+        - PayHero WhatsApp: +254 708 344101
+        - Email: support@payhero.co.ke
+        - Docs: https://docs.payhero.co.ke
+    -->
+</body>
+</html>
